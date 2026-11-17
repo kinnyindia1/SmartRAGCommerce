@@ -1,0 +1,556 @@
+﻿<CodeBlock language="html" editable>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SmartRAGCommerce Analytics</title>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                background: #f4f6fa;
+                color: #172033;
+            }
+
+            header {
+                background: #142b50;
+                color: white;
+                padding: 22px 5%;
+            }
+
+                header h1 {
+                    margin: 0;
+                    font-size: 24px;
+                }
+
+                header p {
+                    margin: 7px 0 0;
+                    color: #cbd5e1;
+                }
+
+            main {
+                max-width: 1400px;
+                margin: 28px auto;
+                padding: 0 20px;
+            }
+
+            .query-panel, .card {
+                background: white;
+                border-radius: 12px;
+                padding: 22px;
+                box-shadow: 0 2px 12px rgba(0,0,0,.05);
+                margin-bottom: 20px;
+            }
+
+            .query-row {
+                display: flex;
+                gap: 12px;
+            }
+
+            input {
+                flex: 1;
+                min-width: 0;
+                padding: 14px;
+                border: 1px solid #d5dce7;
+                border-radius: 8px;
+                font-size: 15px;
+            }
+
+            button {
+                border: 0;
+                border-radius: 8px;
+                padding: 0 24px;
+                background: #2458a6;
+                color: white;
+                font-size: 15px;
+                cursor: pointer;
+            }
+
+                button:disabled {
+                    opacity: .6;
+                    cursor: wait;
+                }
+
+            .secondary {
+                background: #e9eef6;
+                color: #20334e;
+                padding: 10px 16px;
+            }
+
+            .answer {
+                margin-top: 18px;
+                padding: 16px;
+                background: #f2f6fc;
+                border-radius: 8px;
+                white-space: pre-wrap;
+                line-height: 1.6;
+            }
+
+            .status {
+                color: #64748b;
+                margin-top: 12px;
+                font-size: 13px;
+            }
+
+            .kpis {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 18px;
+                margin-bottom: 20px;
+            }
+
+            .kpi-label {
+                color: #64748b;
+                font-size: 14px;
+            }
+
+            .kpi-value {
+                font-size: 27px;
+                font-weight: bold;
+                margin-top: 10px;
+                overflow-wrap: anywhere;
+            }
+
+            .section-title {
+                margin: 0 0 18px;
+                font-size: 18px;
+            }
+
+            .chart-container {
+                position: relative;
+                height: 350px;
+            }
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+
+            th, td {
+                text-align: left;
+                padding: 13px;
+                border-bottom: 1px solid #e8edf3;
+                white-space: nowrap;
+            }
+
+            th {
+                background: #f5f7fa;
+                color: #40516a;
+            }
+
+            .empty {
+                color: #64748b;
+                text-align: center;
+                padding: 30px;
+            }
+
+            .toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+
+            @media (max-width: 700px) {
+                .query-row {
+                    flex-direction: column;
+                }
+
+                    .query-row button {
+                        padding: 14px;
+                    }
+
+                .kpis {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
+
+                .chart-container {
+                    height: 280px;
+                }
+
+                .toolbar {
+                    align-items: flex-start;
+                    flex-direction: column;
+                }
+            }
+        </style>
+
+    </head>
+
+
+    <body>
+
+
+        <header>
+            <h1>SmartRAGCommerce</h1>
+            <p>AI-powered business analytics dashboard</p>
+        </header>
+
+
+        <main>
+
+
+            <section class="query-panel">
+                <h2 class="section-title">Ask your business data</h2>
+
+                <form id="queryForm">
+                    <div class="query-row">
+                        <input id="question"
+                               type="text"
+                               placeholder="Example: Show my top 10 products by revenue"
+                               maxlength="1000"
+                               required>
+
+                        <button id="askButton" type="submit">
+                            Ask Analytics
+                        </button>
+                    </div>
+                </form>
+
+                <div class="answer" id="answer">
+                    Ask a question to view your analytics.
+                </div>
+
+                <div class="status" id="status">
+                    Session ready.
+                </div>
+            </section>
+
+            <section class="kpis">
+                <div class="card">
+                    <div class="kpi-label">Records returned</div>
+                    <div class="kpi-value" id="recordCount">0</div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-label">Total of displayed metric</div>
+                    <div class="kpi-value" id="totalMetric">—</div>
+                </div>
+
+                <div class="card">
+                    <div class="kpi-label">Metric field</div>
+                    <div class="kpi-value" id="metricName">—</div>
+                </div>
+            </section>
+
+            <section class="card">
+                <div class="toolbar">
+                    <h2 class="section-title">Analytics chart</h2>
+                    <button class="secondary" id="newSessionButton" type="button">
+                        New conversation
+                    </button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="analyticsChart"></canvas>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2 class="section-title">Query results</h2>
+
+                <div class="table-wrapper" id="tableContainer">
+                    <div class="empty">No results yet.</div>
+                </div>
+            </section>
+
+        </main>
+
+
+        <script>const API_URL = "/api/Analytics/ask";
+
+    let sessionId = sessionStorage.getItem("analyticsSessionId");
+
+    if (!sessionId) {
+        sessionId = createSessionId();
+        sessionStorage.setItem("analyticsSessionId", sessionId);
+    }
+
+    let currentChart = null;
+
+    function createSessionId() {
+        if (crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+
+        return "session-" + Date.now() + "-" +
+            Math.random().toString(36).substring(2);
+    }
+
+    const form = document.getElementById("queryForm");
+    const questionInput = document.getElementById("question");
+    const askButton = document.getElementById("askButton");
+
+    form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const question = questionInput.value.trim();
+
+        if (!question) return;
+
+        askButton.disabled = true;
+        askButton.textContent = "Processing...";
+
+        document.getElementById("status").textContent =
+            "Sending question to SmartRAGCommerce...";
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question,
+                    sessionId: sessionId
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    errorText || "API request failed: " + response.status
+                );
+            }
+
+            const result = await response.json();
+
+            if (result.sessionId || result.SessionId) {
+                sessionId = result.sessionId || result.SessionId;
+                sessionStorage.setItem("analyticsSessionId", sessionId);
+            }
+
+            const answer = result.answer ?? result.Answer ?? "";
+            const data = result.data ?? result.Data ?? [];
+            const rowCount = result.rowCount ?? result.RowCount ?? data.length;
+
+            document.getElementById("answer").textContent = answer;
+
+            document.getElementById("status").textContent =
+                "Completed. Session: " + sessionId;
+
+            renderResults(data, rowCount);
+
+        } catch (error) {
+            document.getElementById("answer").textContent =
+                "Error: " + error.message;
+
+            document.getElementById("status").textContent =
+                "Request failed. Check that the API is running.";
+        } finally {
+            askButton.disabled = false;
+            askButton.textContent = "Ask Analytics";
+        }
+    });
+
+    document.getElementById("newSessionButton")
+        .addEventListener("click", function () {
+            sessionId = createSessionId();
+
+            sessionStorage.setItem("analyticsSessionId", sessionId);
+
+            document.getElementById("answer").textContent =
+                "New conversation started.";
+
+            document.getElementById("status").textContent =
+                "New session: " + sessionId;
+
+            questionInput.value = "";
+
+            renderResults([], 0);
+        });
+
+    function renderResults(data, rowCount) {
+        document.getElementById("recordCount").textContent = rowCount;
+
+        if (!Array.isArray(data) || data.length === 0) {
+            document.getElementById("totalMetric").textContent = "—";
+            document.getElementById("metricName").textContent = "—";
+
+            document.getElementById("tableContainer").innerHTML =
+                '<div class="empty">No database records returned.</div>';
+
+            drawChart([], null, null);
+            return;
+        }
+
+        const columns = Object.keys(data[0]);
+
+        const numericColumns = columns.filter(column =>
+            data.some(row =>
+                typeof row[column] === "number" &&
+                Number.isFinite(row[column])
+            )
+        );
+
+        const preferredMetric = numericColumns.find(column =>
+            /revenue|amount|sales|profit|total|count/i.test(column)
+        );
+
+        const metricColumn = preferredMetric ||
+            numericColumns.find(column =>
+                !/id|year|month|quantity/i.test(column)
+            ) ||
+            numericColumns[0];
+
+        const labelColumn =
+            columns.find(column =>
+                typeof data[0][column] === "string"
+            ) ||
+            columns.find(column =>
+                !/id|year|month/i.test(column)
+            ) ||
+            columns[0];
+
+        const total = metricColumn
+            ? data.reduce((sum, row) =>
+                sum + (Number(row[metricColumn]) || 0), 0)
+            : 0;
+
+        document.getElementById("totalMetric").textContent =
+            metricColumn ? formatNumber(total) : "—";
+
+        document.getElementById("metricName").textContent =
+            metricColumn || "—";
+
+        renderTable(data, columns);
+
+        drawChart(data, labelColumn, metricColumn);
+    }
+
+    function formatNumber(value) {
+        return new Intl.NumberFormat("en-US", {
+            maximumFractionDigits: 2
+        }).format(value);
+    }
+
+    function renderTable(data, columns) {
+        const container = document.getElementById("tableContainer");
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        columns.forEach(column => {
+            const th = document.createElement("th");
+            th.textContent = column;
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+
+        data.forEach(row => {
+            const tr = document.createElement("tr");
+
+            columns.forEach(column => {
+                const td = document.createElement("td");
+                const value = row[column];
+
+                td.textContent =
+                    value === null || value === undefined
+                        ? "—"
+                        : typeof value === "number"
+                            ? formatNumber(value)
+                            : String(value);
+
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+
+        container.replaceChildren(table);
+    }
+
+    function drawChart(data, labelColumn, metricColumn) {
+        if (currentChart) {
+            currentChart.destroy();
+            currentChart = null;
+        }
+
+        if (!data.length || !metricColumn || !window.Chart) {
+            return;
+        }
+
+        let labels;
+
+        if (
+            data[0].Year !== undefined &&
+            data[0].Month !== undefined
+        ) {
+            labels = data.map(row =>
+                row.Year + "-" + String(row.Month).padStart(2, "0")
+            );
+        } else {
+            labels = data.map(row =>
+                String(row[labelColumn] ?? "Result")
+            );
+        }
+
+        const values = data.map(row =>
+            Number(row[metricColumn]) || 0
+        );
+
+        const isMonthly =
+            data[0].Year !== undefined &&
+            data[0].Month !== undefined;
+
+        const ctx = document.getElementById("analyticsChart");
+
+        currentChart = new Chart(ctx, {
+            type: isMonthly ? "line" : "bar",
+
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: metricColumn,
+                    data: values,
+                    borderWidth: 2,
+                    tension: 0.25
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }</script>
+
+
+    </body>
+</html>
+</CodeBlock>

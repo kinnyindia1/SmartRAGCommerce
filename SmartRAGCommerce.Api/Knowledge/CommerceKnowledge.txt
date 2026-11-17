@@ -1,0 +1,45 @@
+﻿
+SMART RAG COMMERCE BUSINESS KNOWLEDGE
+
+DATABASE:
+SmartRAGCommerceDB
+
+TABLE RELATIONSHIPS:
+Customers.Id -> Orders.CustomerId
+Orders.Id -> OrderItems.OrderId
+Products.Id -> OrderItems.ProductId
+Categories.Id -> Products.CategoryId
+Orders.Id -> Payments.OrderId
+
+BUSINESS TERMINOLOGY:
+
+1. Fastest moving products:
+   Rank products by total quantity sold using OrderItems.
+
+2. Best selling products:
+   Rank by SUM(OrderItems.Quantity).
+
+3. Historical sales revenue:
+   Calculate using OrderItems.UnitPrice * OrderItems.Quantity.
+
+4. Completed sales:
+   Filter Orders.Status = 'Completed' only when completed sales are requested.
+
+5. All orders:
+   Include every order status unless the question specifies a status.
+
+6. Customer order history:
+   Join Customers.Id with Orders.CustomerId.
+
+7. Low stock:
+   Use Products.StockQuantity.
+
+8. Product category:
+   Join Products.CategoryId with Categories.Id.
+
+9. Payment history:
+   Join Payments.OrderId with Orders.Id.
+
+IMPORTANT:
+Always calculate live business figures from SQL Server.
+Never invent sales quantities, customer details, prices or order statuses.

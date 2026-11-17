@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SmartRAGCommerce.Domain.Entities
+{
+    public class OrderItem
+    {
+        public int Id { get; set; }
+
+        public int OrderId { get; set; }
+
+        public int ProductId { get; set; }
+
+        public int Quantity { get; set; }
+
+        // Price at the time of purchase
+        public decimal UnitPrice { get; set; }
+
+        // Navigation properties
+        public Order Order { get; set; } = null!;
+
+        public Product Product { get; set; } = null!;
+    }
+}
